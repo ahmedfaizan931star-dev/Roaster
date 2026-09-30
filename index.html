@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GitHub Profile Roast — honest score for your profile</title>
+<meta name="description" content="Type your GitHub username. Get a score out of 100, a roast, and 3 fixes. Free, no signup.">
+<meta property="og:title" content="GitHub Profile Roast">
+<meta property="og:description" content="What would a recruiter think of your GitHub in 10 seconds? Find out.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#E9EEF2;--ink:#14202B;--mute:#5B6B78;--red:#E5383B;--green:#23875A;--hi:#FFE45E;--card:#fff;--line:#C9D3DB}
+*{box-sizing:border-box;margin:0}
+html{background:var(--paper)}
+body{font-family:"Bricolage Grotesque",system-ui,sans-serif;color:var(--ink);min-height:100vh;line-height:1.5;
+background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:28px 28px;background-position:-1px -1px}
+main{max-width:640px;margin:0 auto;padding:48px 20px 64px}
+h1{font-size:clamp(2.4rem,9vw,3.8rem);font-weight:800;line-height:1.02;letter-spacing:-.03em}
+h1 mark{background:var(--hi);padding:0 .12em}
+.sub{margin:14px 0 28px;color:var(--mute);font-size:1.05rem;max-width:46ch}
+form{display:flex;gap:8px}
+input{flex:1;min-width:0;font:inherit;font-size:1.05rem;padding:14px 16px;border:2px solid var(--ink);background:var(--card);border-radius:10px;color:var(--ink)}
+button{font:inherit;font-weight:600;cursor:pointer;border:2px solid var(--ink);border-radius:10px;padding:14px 20px;background:var(--ink);color:#fff}
+button.alt{background:var(--card);color:var(--ink)}
+button:disabled{opacity:.5;cursor:wait}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+#msg{margin-top:14px;color:var(--red);font-weight:600;min-height:1.5em}
+#out{display:none;margin-top:28px}
+.report{background:var(--card);border:2px solid var(--ink);border-radius:14px;padding:24px;box-shadow:6px 6px 0 var(--ink)}
+.top{display:flex;gap:18px;align-items:center}
+.top img{width:72px;height:72px;border-radius:50%;border:2px solid var(--ink)}
+.name{font-size:1.4rem;font-weight:800;letter-spacing:-.01em}
+.who{color:var(--mute)}
+.score{margin-left:auto;text-align:center;position:relative;padding:4px 14px}
+.score b{font-size:3.2rem;font-weight:800;line-height:1;letter-spacing:-.04em}
+.score i{font-style:normal;display:block;color:var(--mute);font-size:.85rem}
+.grade{position:absolute;right:-6px;top:-10px;width:44px;height:44px;border:3px solid var(--red);border-radius:50%;color:var(--red);font-weight:800;font-size:1.4rem;display:grid;place-items:center;transform:rotate(-12deg);background:#fff}
+.roast{margin:22px 0;font-size:1.15rem;font-weight:600;border-left:5px solid var(--red);padding-left:14px}
+.bars{display:grid;gap:10px;margin-bottom:22px}
+.bar{display:grid;grid-template-columns:84px 1fr 52px;gap:10px;align-items:center;font-size:.92rem}
+.track{height:12px;background:var(--paper);border-radius:6px;overflow:hidden}
+.fill{height:100%;background:var(--green);border-radius:6px;transition:width .6s}
+.fill.low{background:var(--red)}
+.bar span:last-child{text-align:right;color:var(--mute);font-variant-numeric:tabular-nums}
+h2{font-size:1.05rem;margin-bottom:8px}
+ol{padding-left:1.2em;display:grid;gap:8px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
+.cta{margin-top:18px;padding:16px;background:var(--hi);border:2px solid var(--ink);border-radius:10px;font-weight:600}
+.cta a{color:var(--ink)}
+canvas{display:none}
+footer{margin-top:32px;color:var(--mute);font-size:.88rem}
+footer a{color:var(--ink)}
+@media(max-width:480px){.top{flex-wrap:wrap}.score{margin-left:0}.bar{grid-template-columns:70px 1fr 48px}}
+@media(prefers-reduced-motion:reduce){.fill{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<h1>Your GitHub, <mark>scored honestly.</mark></h1>
+<p class="sub">Type a username. Get a score out of 100, a roast, and the 3 fixes that move it most. No signup.</p>
+<form id="f">
+<input id="u" placeholder="github username" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="GitHub username" required>
+<button id="go">Roast it</button>
+</form>
+<div id="msg" role="status"></div>
+
+<section id="out" aria-live="polite">
+<div class="report">
+<div class="top">
+<img id="av" alt="" width="72" height="72">
+<div><div class="name" id="nm"></div><div class="who" id="hd"></div></div>
+<div class="score"><b id="sc"></b><i>out of 100</i><span class="grade" id="gr"></span></div>
+</div>
+<p class="roast" id="rt"></p>
+<div class="bars" id="bars"></div>
+<h2>Fix these first</h2>
+<ol id="fx"></ol>
+<div class="actions">
+<button id="dl">Download card</button>
+<button class="alt" id="cp">Copy LinkedIn post</button>
+</div>
+<div class="cta">Want these fixed for you? <a id="hire" target="_blank" rel="noopener">Get your profile fixed</a></div>
+</div>
+</section>
+<canvas id="cv" width="1200" height="630"></canvas>
+<footer>Scores use public GitHub data only. Limit is about 60 lookups per hour per network. Built by <a id="by" target="_blank" rel="noopener">Vibe Dev PK</a>.</footer>
+</main>
+
+<script>
+// ====== CHANGE THESE ======
+const HIRE_URL = "https://www.fiverr.com/fiyaz_dev";   // where the CTA sends people
+const SITE_URL = location.origin;                       // used in the LinkedIn post text
+// ==========================
+
+const $ = id => document.getElementById(id);
+$("hire").href = HIRE_URL; $("by").href = HIRE_URL;
+
+let last = null;
+const DAY = 864e5;
+
+$("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = $("u").value.trim().replace(/^@/, "");
+  $("msg").textContent = "";
+  if (!/^[a-z\d](?:[a-z\d-]{0,38})$/i.test(name)) return ($("msg").textContent = "That is not a valid GitHub username.");
+  $("go").disabled = true; $("go").textContent = "Reading repos...";
+  try { last = await analyze(name); render(last); }
+  catch (err) { $("msg").textContent = err.message; $("out").style.display = "none"; }
+  $("go").disabled = false; $("go").textContent = "Roast it";
+});
+
+async function gh(path) {
+  const r = await fetch("https://api.github.com" + path);
+  if (r.status === 404) return null;
+  if (r.status === 403) throw new Error("GitHub rate limit hit. Try again in a few minutes.");
+  if (!r.ok) throw new Error("GitHub error " + r.status + ". Try again.");
+  return r.json();
+}
+
+async function analyze(name) {
+  const [user, repos, readme] = await Promise.all([
+    gh("/users/" + name),
+    gh("/users/" + name + "/repos?per_page=100&sort=pushed"),
+    gh("/repos/" + name + "/" + name)
+  ]);
+  if (!user) throw new Error("No GitHub user named \"" + name + "\".");
+  const own = (repos || []).filter(r => !r.fork);
+  const n = own.length, now = Date.now();
+  const pct = f => n ? own.filter(f).length / n : 0;
+  const cap = (v, c) => Math.min(v, c) / c;
+  const stars = own.reduce((s, r) => s + r.stargazers_count, 0);
+  const recent30 = own.filter(r => now - new Date(r.pushed_at) < 30 * DAY).length;
+  const recent90 = own.filter(r => now - new Date(r.pushed_at) < 90 * DAY).length;
+  const years = (now - new Date(user.created_at)) / (365 * DAY);
+  const withHome = own.filter(r => r.homepage).length;
+  const withTopics = own.filter(r => r.topics && r.topics.length).length;
+  const withLic = own.filter(r => r.license).length;
+
+  const c = [];
+  const add = (cat, label, max, frac, fix, roast) => c.push({ cat, label, max, got: max * frac, fix, roast });
+
+  add("Profile", "bio", 7, user.bio ? 1 : 0, "Write a one-line bio: what you build and for whom.", "No bio. Recruiters are guessing what you do, and they will not guess kindly.");
+  add("Profile", "name", 3, user.name ? 1 : 0, "Add your real name.", "No display name. Mysterious, but not in a hireable way.");
+  add("Profile", "location", 3, user.location ? 1 : 0, "Add a location or time zone.", "");
+  add("Profile", "website", 5, user.blog ? 1 : 0, "Link a portfolio or your best project in the website field.", "No website link. Your profile is a dead end.");
+  add("Profile", "profile README", 7, readme ? 1 : 0, "Create a repo named " + name + "/" + name + " with a README that introduces you.", "No profile README. Your GitHub homepage is an empty room with the lights on.");
+
+  add("Repos", "own repos", 8, cap(n, 8), "Publish more of your own work. Aim for at least 8 real repos.", "Only " + n + " original repo" + (n === 1 ? "" : "s") + ". That is a hobby, not a portfolio.");
+  add("Repos", "descriptions", 8, pct(r => r.description), "Add a one-line description to every repo.", "Most repos have no description. Peak \"test2-final\" energy.");
+  add("Repos", "live demos", 5, cap(withHome, 3), "Deploy 3 projects and put the live link in each repo's website field.", "No live demos. \"Trust me, it works\" is not a deployment strategy.");
+  add("Repos", "topics", 5, cap(withTopics, 4), "Add topics (tags) to your best 4 repos so people can find them.", "No topics on your repos. Invisible to search, by design.");
+  add("Repos", "licenses", 4, cap(withLic, 3), "Add an MIT license to your best 3 repos.", "");
+
+  add("Activity", "recent pushes", 10, cap(recent30, 4), "Push to at least 4 different repos this month.", "Almost nothing pushed in the last 30 days. The dust is getting thick.");
+  add("Activity", "last 90 days", 5, recent90 ? 1 : 0, "Ship something this quarter, even small.", "Nothing pushed in 90 days. Is this an archive?");
+  add("Activity", "account age", 5, cap(years, 3), "", "");
+
+  add("Impact", "stars", 15, cap(stars, 50), "Share your best repo on LinkedIn, X, or Reddit. Stars start with you asking.", "Stars across all repos: " + stars + ". Even your mom has not starred it.");
+  add("Impact", "followers", 10, cap(user.followers, 50), "Follow and contribute to people in your niche. Followers follow activity.", "");
+
+  const total = Math.round(c.reduce((s, x) => s + x.got, 0));
+  const cats = ["Profile", "Repos", "Activity", "Impact"].map(k => {
+    const items = c.filter(x => x.cat === k);
+    return { k, got: Math.round(items.reduce((s, x) => s + x.got, 0)), max: items.reduce((s, x) => s + x.max, 0) };
+  });
+  const gaps = c.filter(x => x.max - x.got > 0.5).sort((a, b) => (b.max - b.got) - (a.max - a.got));
+  const fixes = gaps.filter(x => x.fix).slice(0, 3);
+  const grade = total >= 85 ? "A" : total >= 70 ? "B" : total >= 55 ? "C" : total >= 40 ? "D" : "F";
+  const praise = { A: "Annoyingly good. Fix the nitpicks below and you are dangerous.", B: "Solid, but a recruiter will still bounce in ten seconds.", C: "Average. Not bad, not memorable, which is its own problem.", D: "There is potential here, buried under neglect.", F: "This profile is a blank canvas. Brave, but nobody hires a blank canvas." }[grade];
+  const bits = gaps.filter(x => x.roast).slice(0, 2).map(x => x.roast);
+  const roast = [praise].concat(bits).join(" ");
+
+  return { name, user, total, grade, cats, fixes, roast, n, stars };
+}
+
+function render(d) {
+  $("out").style.display = "block";
+  $("av").src = d.user.avatar_url + "&s=144";
+  $("nm").textContent = d.user.name || d.user.login;
+  $("hd").textContent = "@" + d.user.login + " · " + d.n + " original repos";
+  $("sc").textContent = d.total;
+  $("gr").textContent = d.grade;
+  $("rt").textContent = d.roast;
+  $("bars").innerHTML = "";
+  d.cats.forEach(x => {
+    const low = x.got / x.max < 0.4;
+    const row = document.createElement("div"); row.className = "bar";
+    row.innerHTML = '<span></span><div class="track"><div class="fill' + (low ? " low" : "") + '"></div></div><span></span>';
+    row.children[0].textContent = x.k;
+    row.children[2].textContent = x.got + "/" + x.max;
+    $("bars").appendChild(row);
+    requestAnimationFrame(() => (row.querySelector(".fill").style.width = Math.round(x.got / x.max * 100) + "%"));
+  });
+  $("fx").innerHTML = "";
+  (d.fixes.length ? d.fixes : [{ fix: "Nothing big left. Keep shipping and keep the profile README fresh." }]).forEach(f => {
+    const li = document.createElement("li"); li.textContent = f.fix; $("fx").appendChild(li);
+  });
+  $("out").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// ---------- share card ----------
+function wrap(ctx, text, x, y, w, lh, maxLines) {
+  const words = text.split(" "); let line = "", lines = [];
+  for (const wd of words) {
+    const t = line ? line + " " + wd : wd;
+    if (ctx.measureText(t).width > w && line) { lines.push(line); line = wd; } else line = t;
+  }
+  lines.push(line);
+  if (lines.length > maxLines) { lines = lines.slice(0, maxLines); lines[maxLines - 1] = lines[maxLines - 1].replace(/\s?\S*$/, "") + "..."; }
+  lines.forEach((l, i) => ctx.fillText(l, x, y + i * lh));
+}
+
+function loadImg(src) {
+  return new Promise(res => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
+}
+
+async function drawCard(d) {
+  try { await document.fonts.load('800 80px "Bricolage Grotesque"'); await document.fonts.load('600 30px "Bricolage Grotesque"'); } catch (e) {}
+  const cv = $("cv"), ctx = cv.getContext("2d"), F = '"Bricolage Grotesque",system-ui,sans-serif';
+  ctx.fillStyle = "#E9EEF2"; ctx.fillRect(0, 0, 1200, 630);
+  ctx.strokeStyle = "#C9D3DB"; ctx.lineWidth = 1;
+  for (let x = 0; x <= 1200; x += 40) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 630); ctx.stroke(); }
+  for (let y = 0; y <= 630; y += 40) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1200, y); ctx.stroke(); }
+  ctx.fillStyle = "#14202B"; ctx.fillRect(68, 68, 1084, 504);
+  ctx.fillStyle = "#fff"; ctx.fillRect(60, 60, 1084, 504);
+  ctx.strokeStyle = "#14202B"; ctx.lineWidth = 4; ctx.strokeRect(60, 60, 1084, 504);
+
+  const img = await loadImg(d.user.avatar_url + "&s=200");
+  if (img) { ctx.save(); ctx.beginPath(); ctx.arc(150, 160, 50, 0, 7); ctx.clip(); ctx.drawImage(img, 100, 110, 100, 100); ctx.restore(); }
+  ctx.beginPath(); ctx.arc(150, 160, 50, 0, 7); ctx.stroke();
+
+  ctx.fillStyle = "#14202B"; ctx.textBaseline = "alphabetic";
+  ctx.font = "800 44px " + F; ctx.fillText(d.user.name || d.user.login, 224, 158);
+  ctx.fillStyle = "#5B6B78"; ctx.font = "600 28px " + F; ctx.fillText("@" + d.user.login, 224, 198);
+
+  ctx.fillStyle = "#14202B"; ctx.textAlign = "right"; ctx.font = "800 150px " + F; ctx.fillText(String(d.total), 1040, 210);
+  ctx.fillStyle = "#5B6B78"; ctx.font = "600 26px " + F; ctx.fillText("out of 100", 1040, 246);
+  ctx.textAlign = "left";
+  ctx.strokeStyle = "#E5383B"; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.ellipse(1070, 100, 38, 34, -0.2, 0, 7); ctx.stroke();
+  ctx.fillStyle = "#E5383B"; ctx.textAlign = "center"; ctx.font = "800 44px " + F; ctx.fillText(d.grade, 1070, 116); ctx.textAlign = "left";
+
+  ctx.fillStyle = "#E5383B"; ctx.fillRect(100, 290, 8, 150);
+  ctx.fillStyle = "#14202B"; ctx.font = "600 34px " + F; wrap(ctx, d.roast, 128, 326, 900, 46, 4);
+
+  ctx.fillStyle = "#14202B"; ctx.font = "600 24px " + F;
+  ctx.fillText(d.cats.map(c => c.k + " " + c.got + "/" + c.max).join("     "), 100, 500);
+  ctx.fillStyle = "#5B6B78"; ctx.font = "600 22px " + F; ctx.fillText("Get yours: " + location.host, 100, 540);
+  return cv;
+}
+
+$("dl").addEventListener("click", async () => {
+  if (!last) return;
+  const cv = await drawCard(last);
+  const a = document.createElement("a"); a.download = last.name + "-github-roast.png"; a.href = cv.toDataURL("image/png"); a.click();
+});
+
+$("cp").addEventListener("click", async () => {
+  if (!last) return;
+  const t = "I got " + last.total + "/100 (grade " + last.grade + ") on my GitHub profile. The roast: \"" + last.roast + "\"\n\nCheck yours, it takes 10 seconds: " + SITE_URL;
+  try { await navigator.clipboard.writeText(t); $("cp").textContent = "Copied"; } catch (e) { prompt("Copy this:", t); }
+  setTimeout(() => ($("cp").textContent = "Copy LinkedIn post"), 1800);
+});
+</script>
+</body>
+</html>
